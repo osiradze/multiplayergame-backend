@@ -9,8 +9,10 @@ class RouteController(
     private val serverRepository: ServerRepository
 ) {
     fun host(request: HostRequest): HostResponse {
-        val id = serverRepository.host(request.name)
-        return HostResponse(serverId = id)
+        val server = serverRepository.host(request.name)
+        return HostResponse(
+            server = server
+        )
     }
 
     fun servers(): List<Server> {

@@ -10,7 +10,7 @@ class ServerRepositoryImpl: ServerRepository {
 
     private val servers = Collections.synchronizedMap(HashMap<Int, Server>())
 
-    override fun host(name: String): Int {
+    override fun host(name: String): Server {
         val server = Server(
             id = servers.size + 1,
             name = name,
@@ -25,7 +25,7 @@ class ServerRepositoryImpl: ServerRepository {
         )
         serverSocket.start()
         servers[server.id] = server
-        return server.id
+        return server
     }
 
     override fun servers(): List<Server> {

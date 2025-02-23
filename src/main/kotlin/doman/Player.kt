@@ -1,4 +1,4 @@
-package com.siradze.data.socket
+package com.siradze.doman
 
 import io.ktor.network.sockets.*
 

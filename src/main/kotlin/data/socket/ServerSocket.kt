@@ -1,12 +1,12 @@
 package com.siradze.data.socket
 
-import com.siradze.EchoApp.selectorManager
-import com.siradze.doman.Server
+import com.siradze.doman.Player
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
 import io.ktor.util.network.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
+import kotlinx.io.readByteArray
 import java.util.*
 import kotlin.collections.HashMap
 import kotlin.coroutines.coroutineContext
@@ -15,15 +15,20 @@ class ServerSocket(
     private val port: Int,
     private val onDestroy: () -> Unit
 ) {
+
+    companion object {
+        private val selectorManager = ActorSelectorManager(Dispatchers.IO)
+    }
+
     private val players = Collections.synchronizedMap(HashMap<Int, Player>())
     private val addresses = Collections.synchronizedMap(HashMap<Int, SocketAddress>())
 
     private var server: BoundDatagramSocket? = null
 
 
-    fun start() = GlobalScope.launch {
+    fun start() = GlobalScope.launch(Dispatchers.IO) {
         server = aSocket(selectorManager).udp().bind(
-            localAddress = InetSocketAddress("127.0.0.1", port)
+            localAddress = InetSocketAddress("0.0.0.0", port)
         )
         println("UDP server is listening on port $port")
 
@@ -44,6 +49,9 @@ class ServerSocket(
             val datagram = server.receive()
             val clientAddress = datagram.address
             val player = getOrAddPlayer(clientAddress)
+            datagram.packet.readByteArray().let {
+                player?.data = it
+            }
         }
     }
 
@@ -69,11 +77,27 @@ class ServerSocket(
                 name = "Player ${players.size + 1}",
                 socket = clientAddress
             )
-            println(players.size)
+            println("Player joined on port: $port, playerCount: ${players.size}")
         }
         return players[port]
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 object SocketTest {
@@ -96,8 +120,6 @@ object SocketTest {
                 val response = responseDatagram.packet.readText()
                 println("Received from server: $response")
             }
-
-
             // Close the client socket
            // client.close()
             //println("UDP client closed")
